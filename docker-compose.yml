@@ -1,0 +1,31 @@
+version: "3.7"
+services:
+  db:
+    container_name: "sysman_postgres"
+    image: postgres:13
+    volumes: 
+      - ./data/db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432"
+  web:
+    container_name: "sysman_api"
+    build:
+      context: ./sysman_api
+      dockerfile: dev.Dockerfile
+    volumes:
+      - ./sysman_api:/api
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    command:
+      "python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
